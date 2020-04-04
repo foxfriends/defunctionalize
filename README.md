@@ -16,6 +16,63 @@ it allows serialization of behaviour.
 
 ## Usage
 
+1.  Apply the `defunctionalize` attribute to a module. This attribute takes a function signature,
+    which is the signature of the functions you intend to defunctionalize. This signature requires
+    named arguments, and supports generics.
+
+    Typically, the name of the generated enum type is computed from the name of the module, but by
+    adding a name in this signature, that name is used instead. Note that the name is *not* converted
+    to CamelCase automatically in this case.
+
+    ```rust
+    // Basic usage
+    #[defunctionalize(fn(lhs: usize, rhs: usize) -> usize)]
+    mod defunc_a {}
+
+    // Generics are supported
+    #[defunctionalize(fn<T: std::ops::Add>(lhs: T, rhs: T) -> T::Output)]
+    mod defunc_b {}
+
+    // The function name will override the module name
+    #[defunctionalize(fn DefuncC(lhs: usize, rhs: usize) -> usize)]
+    mod hello {} // The generated item will be `enum DefuncC { ... }`
+
+    // Where clauses are supported too
+    #[defunctionalize(fn<T>(lhs: T, rhs: T) -> T::Output where T: Add)]
+    mod defunc_d {}
+    ```
+
+2.  You may apply the `derive` attribute to this module as well. The syntax is the same as usual,
+    and the traits will be derived on the generated enum. The usual restrictions will apply for the
+    types of the enum cases' fields.
+
+3.  Define `pub` functions in this module. They will get converted to enum cases. Non-`pub` functions
+    may be defined as helpers, but will not be added as enum cases.
+
+    These functions must have at least the signature defined in the `defunctionalize` attribute, but
+    may also have extra arguments *before* the listed ones. The return type must match.
+
+    The name of the function is converted to CamelCase to become the name of the enum case.
+
+    ```rust
+    #[defunctionalize(fn(lhs: usize, rhs: usize) -> usize)]
+    mod defunc_a {
+        // Helper won't get defunctionalized
+        fn helper(s: String) -> usize { s.len() }
+
+        // This signature matches
+        pub fn add(lhs: usize, rhs: usize) -> usize { lhs + rhs }
+
+        // Extra parameters at the front get converted to enum fields
+        pub fn add_plus_n(n: usize, lhs: usize, rhs: usize) -> usize { lhs + rhs }
+
+        // This is not supported: the signature is wrong
+        pub fn bad(x: String, y: usize) -> &'static str { "what" }
+    }
+    ```
+
+## Examples
+
 The most basic usage is as follows:
 
 ```rust
@@ -86,7 +143,7 @@ pub mod operation {
     pub fn rem(x: u32, y: u32) -> u32 { x % y }
 }
 
-// The extra parameter got moved to the enum! Now we can essentially serialize an 
+// The extra parameter got moved to the enum! Now we can essentially serialize an
 // entire function call.
 //
 // #[derive(Copy, Clone, Debug, serde::Serialize, serde::Deserialize)]

@@ -117,6 +117,8 @@ pub fn defunctionalize(attr: TokenStream, item: TokenStream) -> TokenStream {
         .collect::<Vec<_>>();
 
     let visibility = &mod_item.vis;
+    let generics = &signature.generics;
+    let where_clause = &signature.generics.where_clause;
     let inputs = &signature.inputs;
     let arg_idents = &signature
         .inputs
@@ -135,7 +137,7 @@ pub fn defunctionalize(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
 
         impl #enum_name {
-            #visibility fn call(self, #inputs) #output {
+            #visibility fn call #generics (self, #inputs) #output #where_clause {
                 match self {
                     #(Self::#case_names#((#(#case_arg_names),*))* => {
                         #mod_name::#function_names(
