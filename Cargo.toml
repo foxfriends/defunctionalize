@@ -1,8 +1,12 @@
 [package]
 name = "defunctionalize"
+description = "Defunctionalization as a proc-macro over modules"
 version = "0.1.0"
 authors = ["Cameron Eldridge <cam.eldridge@gmail.com>"]
 edition = "2018"
+homepage = "https://github.com/foxfriends/defunctionalize"
+repository = "https://github.com/foxfriends/defunctionalize"
+license = "MIT"
 
 [lib]
 proc-macro = true
