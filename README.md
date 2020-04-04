@@ -2,6 +2,8 @@
 
 Defunctionalization as a proc macro for Rust.
 
+> Note: this is in very early stages, and I am just starting to work out the mechanics.
+
 Defunctionalization is a technique by which higher-order functions are eliminated, and
 replaced instead by a first-order function.
 
