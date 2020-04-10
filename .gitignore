@@ -1,2 +1,4 @@
 /target
+/defunctionalize/target
+/defunctionalize-proc-macro/target
 Cargo.lock

@@ -1,0 +1,16 @@
+[package]
+name = "defunctionalize"
+description = "Defunctionalization as a proc-macro over modules"
+version = "0.2.0"
+authors = ["Cameron Eldridge <cam.eldridge@gmail.com>"]
+edition = "2018"
+homepage = "https://github.com/foxfriends/defunctionalize"
+repository = "https://github.com/foxfriends/defunctionalize"
+license = "MIT"
+
+[features]
+default = ["proc-macro"]
+proc-macro = ["defunctionalize-proc-macro"]
+
+[dependencies]
+defunctionalize-proc-macro = { version = "=0.2.0", path = "../defunctionalize-proc-macro/", optional = true }

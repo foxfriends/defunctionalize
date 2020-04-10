@@ -2,7 +2,7 @@ use heck::CamelCase;
 use proc_macro::TokenStream;
 use proc_macro_error::{diagnostic, Diagnostic, Level::Error};
 use quote::{format_ident, quote};
-use syn::{spanned::Spanned, FnArg, Ident, Item, ItemMod, Pat, Visibility};
+use syn::{spanned::Spanned, FnArg, Ident, Item, ItemMod, Pat, ReturnType, Visibility};
 
 mod signature;
 mod simple_arg;
@@ -120,13 +120,18 @@ pub fn defunctionalize(attr: TokenStream, item: TokenStream) -> TokenStream {
     let generics = &signature.generics;
     let where_clause = &signature.generics.where_clause;
     let inputs = &signature.inputs;
-    let arg_idents = &signature
+    let input_types = inputs.iter().map(|arg| &arg.ty).collect::<Vec<_>>();
+    let input_names = &signature
         .inputs
         .iter()
         .map(|arg| &arg.ident)
         .collect::<Vec<&Ident>>();
-    let arg_idents = std::iter::repeat(arg_idents);
+    let arg_idents = std::iter::repeat(&input_names);
     let output = &signature.output;
+    let output_type = match output {
+        ReturnType::Default => quote!(()),
+        ReturnType::Type(.., ty) => quote!(#ty),
+    };
 
     let output = quote! {
         #mod_item
@@ -134,6 +139,14 @@ pub fn defunctionalize(attr: TokenStream, item: TokenStream) -> TokenStream {
         #(#derives)*
         #visibility enum #enum_name {
             #(#case_names#((#(#case_arg_types),*))*),*
+        }
+
+        impl #generics defunctionalize::DeFn<(#(#input_types),*)> for #enum_name #where_clause {
+            type Output = #output_type;
+
+            fn call (self, (#(#input_names),*): (#(#input_types),*)) #output {
+                self.call(#(#input_names),*)
+            }
         }
 
         impl #enum_name {
