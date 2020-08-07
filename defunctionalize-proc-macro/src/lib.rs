@@ -21,14 +21,7 @@ pub fn defunctionalize(attr: TokenStream, item: TokenStream) -> TokenStream {
         None => panic!(),
     };
 
-    let derive_position = mod_item
-        .attrs
-        .iter()
-        .position(|attr| attr.path.segments[0].ident == "derive");
-    let derives = match derive_position {
-        Some(position) => vec![mod_item.attrs.remove(position)],
-        None => vec![],
-    };
+    let attrs = std::mem::take(&mut mod_item.attrs);
 
     let mod_name = &mod_item.ident;
     let enum_name = signature
@@ -136,7 +129,7 @@ pub fn defunctionalize(attr: TokenStream, item: TokenStream) -> TokenStream {
     let output = quote! {
         #mod_item
 
-        #(#derives)*
+        #(#attrs)*
         #visibility enum #enum_name {
             #(#case_names#((#(#case_arg_types),*))*),*
         }
